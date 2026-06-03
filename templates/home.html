@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Aletheia | Forensics{% endblock %}
+
+{% block styles %}
+<style>
+    .hero-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 40px 0 80px 0;
+    }
+    .badge {
+        background: rgba(79, 70, 229, 0.1);
+        color: var(--primary);
+        padding: 6px 16px;
+        border-radius: var(--radius-pill);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 24px;
+    }
+    .hero-title {
+        font-family: var(--font-display);
+        font-size: 4rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        line-height: 1.1;
+        margin: 0 0 20px 0;
+        letter-spacing: -1px;
+    }
+    .hero-title span {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        width: 100%;
+        margin-top: 40px;
+    }
+    .feature-card {
+        background: var(--surface-color);
+        padding: 30px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-light);
+        text-align: left;
+        transition: transform 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .feature-icon {
+        width: 48px; height: 48px;
+        background: rgba(6, 182, 212, 0.1);
+        color: var(--secondary);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 20px;
+    }
+    .feature-card h3 {
+        font-family: var(--font-display);
+        font-size: 1.2rem; margin: 0 0 10px 0;
+    }
+    .feature-card p {
+        color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section anim-pop">
+    <div class="badge stagger-1">Aletheia Architecture V 3.1.0</div>
+    <h1 class="hero-title stagger-1">Image Forensics,<br><span>Reimagined.</span></h1>
+    <p class="hero-subtitle stagger-2">Utilize advanced neural networks, thermal heuristics, and ELA processing to instantly detect manipulated media and AI-generated imagery.</p>
+    
+    <div class="stagger-3">
+        <a href="/upload" class="btn-primary" style="padding: 16px 40px; font-size: 1rem;">
+            Initialize Scanner 
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+    </div>
+
+    <div class="feature-grid stagger-3">
+        <div class="feature-card">
+            <div class="feature-icon">👁️</div>
+            <h3>Deep Visual Inspection</h3>
+            <p>Scans pixel-level inconsistencies and spatial artifacts missed by the human eye.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="color: var(--primary); background: rgba(79,70,229,0.1);">🌡️</div>
+            <h3>Thermal Heuristics</h3>
+            <p>Maps noise signatures and frequency anomalies into actionable heatmaps.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="color: var(--success); background: rgba(16,185,129,0.1);">📊</div>
+            <h3>Metadata Integrity</h3>
+            <p>Cross-references EXIF data for tampering, timeline adjustments, and source mismatch.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Analysis Report | Aletheia{% endblock %}
+
+{% block styles %}
+<style>
+    .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .report-title { font-family: var(--font-display); font-size: 2.2rem; margin: 0; }
+    
+    .status-badge { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; padding: 8px 20px; border-radius: var(--radius-pill); text-transform: uppercase; display: inline-block; }
+    .status-fake { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 2px solid rgba(239, 68, 68, 0.3); }
+    .status-real { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 2px solid rgba(16, 185, 129, 0.3); }
+
+    .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+    .section-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; color: var(--text-dark); margin: 0 0 16px 0; border-bottom: 2px solid var(--bg-color); padding-bottom: 8px; }
+
+    .image-card { padding: 20px; text-align: center; margin-bottom: 24px; }
+    
+    .image-preview { max-width: 100%; width: auto; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); max-height: 400px; object-fit: contain; background: var(--bg-color); }
+    .img-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 12px; }
+
+    .data-list { list-style: none; padding: 0; margin: 0; }
+    .data-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed var(--border-light); font-size: 0.95rem; }
+    .data-row:last-child { border-bottom: none; }
+    .data-name { font-weight: 500; color: var(--text-muted); }
+    
+    .data-val { font-weight: 700; }
+    .val-safe { color: #10B981 !important; }   
+    .val-warn { color: #F59E0B !important; }   
+    .val-danger { color: #EF4444 !important; } 
+
+    .diagnostics { background: var(--bg-color); padding: 20px; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6; color: var(--text-dark); border: 1px solid var(--border-light); }
+    .diagnostics ul { margin: 0; padding-left: 20px; }
+    .diagnostics li { margin-bottom: 8px; }
+
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-header anim-pop">
+    <div>
+        <h1 class="report-title">Forensic Log</h1>
+        <div style="margin-top: 10px;">
+            {% set is_fake = 'fake' in label|lower or 'ai' in label|lower or 'manipulated' in label|lower %}
+            <div class="status-badge {% if is_fake %}status-fake{% else %}status-real{% endif %}">
+                {{ label|upper }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="header-actions">
+        <button onclick="downloadReport()" class="btn-secondary" style="color: #3b82f6; border-color: rgba(59,130,246,0.3); cursor: pointer; font-family: var(--font-main); font-weight: 600; padding: 10px 20px; border-radius: 6px; background: transparent;">Download PDF Report</button>
+        <a href="/upload" class="btn-primary">Scan Next File</a>
+    </div>
+</div>
+
+<div id="pdf-content" style="padding: 10px; background: #ffffff;">
+    <div class="grid-layout">
+        <div class="stagger-1">
+            <div class="card image-card">
+                <span class="img-label">Source Payload</span>
+                <img src="{{ url_for('static', filename='uploads/' + image) }}" class="image-preview" alt="Uploaded Image">
+            </div>
+            
+            {% if heatmap %}
+            <div class="card image-card">
+                <span class="img-label">Thermal Map Anomaly</span>
+                <img src="{{ url_for('static', filename='uploads/' + heatmap) }}" class="image-preview" alt="Forensic Heatmap">
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="stagger-2">
+            <div class="card" style="margin-bottom: 24px; padding: 30px;">
+                <h3 class="section-title">Telemetry & Metrics</h3>
+                <ul class="data-list">
+                    <li class="data-row">
+                        <span class="data-name">Confidence</span>
+                        {% set conf_color = 'val-danger' if is_fake and prob|float >= 85 else 'val-warn' if is_fake else 'val-safe' %}
+                        <span class="data-val {{ conf_color }}">{{ prob }}%</span>
+                    </li>
+                    <li class="data-row">
+                        <span class="data-name">ELA Shift Factor</span>
+                        {% set ela_color = 'val-danger' if ela|float > 10 else 'val-warn' if ela|float > 5 else 'val-safe' %}
+                        <span class="data-val {{ ela_color }}">{{ ela }}</span>
+                    </li>
+                    <li class="data-row">
+                        <span class="data-name">Noise Signature</span>
+                        {% set noise_color = 'val-danger' if noise|float > 50 else 'val-warn' if noise|float > 25 else 'val-safe' %}
+                        <span class="data-val {{ noise_color }}">{{ noise }}</span>
+                    </li>
+                    <li class="data-row">
+                        <span class="data-name">Frequency Anomaly</span>
+                        {% set freq_color = 'val-danger' if freq|float > 5.0 else 'val-warn' if freq|float > 2.0 else 'val-safe' %}
+                        <span class="data-val {{ freq_color }}">{{ freq|round(2) }}</span>
+                    </li>
+                    <li class="data-row">
+                        <span class="data-name">Edge Sync</span>
+                        {% set edge_color = 'val-danger' if edge|float > 5.0 else 'val-warn' if edge|float > 2.0 else 'val-safe' %}
+                        <span class="data-val {{ edge_color }}">{{ edge|round(2) }}</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px; padding: 30px;">
+                <h3 class="section-title">Heuristic Diagnostics</h3>
+                <div class="diagnostics">
+                    {{ explanation | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function downloadReport() {
+        window.scrollTo(0, 0);
+        const element = document.getElementById('pdf-content');
+        
+        const titleHtml = `<h2 id="temp-pdf-title" style="font-family: sans-serif; text-align: center; color: #000000; margin-bottom: 20px; padding-top: 10px;">Aletheia Forensic Analysis Report</h2>`;
+        element.insertAdjacentHTML('afterbegin', titleHtml);
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            #pdf-content, #pdf-content * {
+                opacity: 1 !important;
+                animation: none !important;
+                transition: none !important;
+                transform: none !important;
+            }
+            #pdf-content { background-color: #ffffff !important; }
+            .data-name, .img-label, .section-title, .diagnostics, .diagnostics *, .data-row {
+                color: #000000 !important;
+            }
+            .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+        `;
+        document.head.appendChild(style);
+
+        const opt = {
+            margin:       0.4,
+            filename:     'Aletheia_Report_{{ image }}.pdf',
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // CRITICAL FIX: 50ms delay allows the browser to paint the new visible styles before snapping
+        setTimeout(() => {
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.getElementById('temp-pdf-title').remove();
+                document.head.removeChild(style);
+            });
+        }, 50);
+    }
+</script>
+{% endblock %}

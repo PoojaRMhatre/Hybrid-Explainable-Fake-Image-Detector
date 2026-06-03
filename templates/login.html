@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Login | Aletheia{% endblock %}
+{% block styles %}
+<style>
+    .auth-wrapper { display: flex; justify-content: center; align-items: center; margin-top: 40px; }
+    .auth-card { width: 100%; max-width: 420px; padding: 50px 40px; }
+    h2 { font-family: var(--font-display); font-size: 2rem; margin: 0 0 8px 0; text-align: center; }
+    .sub-text { color: var(--text-muted); text-align: center; margin-bottom: 30px; font-size: 0.95rem; }
+    .forgot-link { font-size: 0.8rem; font-weight: 500; color: var(--primary); text-decoration: none; float: right; margin-top: -10px; margin-bottom: 20px;}
+    .forgot-link:hover { text-decoration: underline; }
+    .footer-text { text-align: center; margin-top: 30px; font-size: 0.9rem; color: var(--text-muted); }
+    .footer-text a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    .footer-text a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrapper anim-pop">
+    <div class="card auth-card">
+        <h2>Welcome Back</h2>
+        <p class="sub-text">Initialize your secure node session</p>
+        <form method="POST">
+            <input name="email" placeholder="Email Address" type="email" required>
+            <input name="password" placeholder="Password" type="password" required>
+            <a href="/forgot-password" class="forgot-link">Forgot password?</a>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Authenticate Node</button>
+        </form>
+        <div class="footer-text">Don't have access? <a href="/register">Construct Node</a></div>
+    </div>
+</div>
+{% endblock %}

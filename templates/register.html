@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Register | Aletheia{% endblock %}
+{% block styles %}
+<style>
+    .auth-wrapper { display: flex; justify-content: center; align-items: center; margin-top: 20px; }
+    .auth-card { width: 100%; max-width: 480px; padding: 50px 40px; }
+    h2 { font-family: var(--font-display); font-size: 2rem; margin: 0 0 8px 0; text-align: center; }
+    .sub-text { color: var(--text-muted); text-align: center; margin-bottom: 30px; font-size: 0.95rem; }
+    .input-row { display: flex; gap: 16px; }
+    .error-msg { color: var(--danger); font-size: 0.8rem; font-weight: 500; display: none; margin-top: -15px; margin-bottom: 15px; }
+    .footer-text { text-align: center; margin-top: 30px; font-size: 0.9rem; color: var(--text-muted); }
+    .footer-text a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    .footer-text a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrapper anim-pop">
+    <div class="card auth-card">
+        <h2>Construct Node</h2>
+        <p class="sub-text">Join the decentralized intelligence network</p>
+        <form method="POST" id="registerForm">
+            <input name="name" placeholder="System Alias (Full Name)" type="text" required>
+            <input name="email" placeholder="Email Address" type="email" required>
+            <input name="institution" placeholder="Affiliation (Optional)" type="text">
+            <div class="input-row">
+                <input name="password" id="pwd" placeholder="Password" type="password" required>
+                <input name="confirm_password" id="confirmPwd" placeholder="Verify Password" type="password" required>
+            </div>
+            <div id="pwdError" class="error-msg">Passwords do not match.</div>
+            <button type="submit" id="submitBtn" class="btn-primary" style="width: 100%;">Allocate User</button>
+        </form>
+        <div class="footer-text">Node already exists? <a href="/login">Authenticate</a></div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    const pwd = document.getElementById('pwd'); 
+    const confirmPwd = document.getElementById('confirmPwd'); 
+    const errorMsg = document.getElementById('pwdError'); 
+    const submitBtn = document.getElementById('submitBtn');
+    
+    function validatePasswords() { 
+        if (confirmPwd.value && pwd.value !== confirmPwd.value) { 
+            errorMsg.style.display = 'block'; 
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.pointerEvents = 'none';
+        } else { 
+            errorMsg.style.display = 'none'; 
+            submitBtn.style.opacity = '1';
+            submitBtn.style.pointerEvents = 'auto';
+        } 
+    }
+    pwd.addEventListener('input', validatePasswords); 
+    confirmPwd.addEventListener('input', validatePasswords);
+</script>
+{% endblock %}

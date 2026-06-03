@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload | Forensic Scanner{% endblock %}
+
+{% block styles %}
+<style>
+    .upload-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-top: 20px;
+    }
+    .upload-card {
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+    }
+    .upload-title {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        margin: 0 0 8px 0;
+        color: var(--text-dark);
+    }
+    .upload-subtitle {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 30px;
+    }
+
+    .drop-zone {
+        border: 2px dashed var(--border-light);
+        border-radius: var(--radius-lg);
+        background: var(--bg-color);
+        padding: 60px 20px;
+        position: relative;
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+        cursor: pointer;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+        border-color: var(--primary);
+        background: rgba(79, 70, 229, 0.02);
+    }
+    .file-input {
+        opacity: 0;
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        cursor: pointer;
+    }
+    
+    .upload-icon {
+        width: 64px; height: 64px;
+        background: var(--surface-color);
+        border-radius: 50%;
+        display: flex; justify-content: center; align-items: center;
+        margin: 0 auto 16px auto;
+        box-shadow: var(--shadow-sm);
+        color: var(--primary);
+    }
+
+    .file-label {
+        font-weight: 500;
+        color: var(--text-dark);
+        pointer-events: none;
+    }
+
+    /* --- Vibrant Loading Overlay --- */
+    #loading-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .loader-ring {
+        width: 80px; height: 80px;
+        border: 4px solid var(--border-light);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 24px;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .loading-text { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; }
+    .loading-subtext { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-wrapper anim-pop">
+    <div class="card upload-card">
+        <h2 class="upload-title stagger-1">Initiate Scanner</h2>
+        <p class="upload-subtitle stagger-1">Securely upload visual data for hybrid extraction</p>
+        
+        <form method="POST" enctype="multipart/form-data" id="uploadForm" class="stagger-2">
+            <div class="drop-zone" id="dropZone">
+                <input type="file" name="image" class="file-input" id="fileInput" accept="image/*" required>
+                <div class="upload-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <div class="file-label" id="fileLabel">Drag & drop or click to browse</div>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;" id="analyzeBtn">Execute Analysis</button>
+        </form>
+    </div>
+</div>
+
+<div id="loading-overlay">
+    <div class="loader-ring"></div>
+    <div class="loading-text">Extracting Forensics</div>
+    <div class="loading-subtext">Executing Deep Learning Models...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileLabel = document.getElementById('fileLabel');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const dropZone = document.getElementById('dropZone');
+    const loadingOverlay = document.getElementById('loading-overlay');
+
+    fileInput.addEventListener('change', function(e) {
+        if(e.target.files.length > 0) {
+            fileLabel.innerHTML = `<span style="color: var(--primary); font-weight: 600;">Payload Mounted:</span><br>${e.target.files[0].name}`;
+            analyzeBtn.innerText = "Initiate Hybrid Scan";
+            dropZone.style.borderColor = "var(--primary)";
+            dropZone.style.background = "rgba(79, 70, 229, 0.05)";
+        } else {
+            fileLabel.innerHTML = `Drag & drop or click to browse`;
+            analyzeBtn.innerText = "Execute Analysis";
+        }
+    });
+
+    dropZone.addEventListener('dragover', () => { dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', () => { dropZone.classList.remove('dragover'); });
+
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            if (fileInput.files.length > 0) {
+                loadingOverlay.style.display = 'flex';
+            }
+        });
+    }
+</script>
+{% endblock %}

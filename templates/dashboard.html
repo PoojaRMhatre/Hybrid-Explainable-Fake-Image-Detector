@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard | Aletheia{% endblock %}
+
+{% block styles %}
+<style>
+    .dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+    .dashboard-title { font-family: var(--font-display); font-size: 2.2rem; margin: 0 0 4px 0; }
+    .dashboard-subtitle { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+    .stat-card { padding: 24px; display: flex; flex-direction: column; }
+    .stat-label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; color: var(--text-dark); }
+
+    .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-light); }
+    table { width: 100%; border-collapse: collapse; background: var(--surface-color); }
+    th { background: var(--bg-color); color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; padding: 16px 24px; text-align: left; border-bottom: 1px solid var(--border-light); }
+    td { padding: 16px 24px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,0,0,0.01); }
+
+    .filename { font-weight: 500; color: var(--text-dark); word-break: break-all; }
+    .timestamp { color: var(--text-muted); font-size: 0.85rem; min-width: 120px; }
+
+    .badge { display: inline-block; padding: 4px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+    .badge-fake { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .badge-real { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .badge-default { background: var(--bg-color); color: var(--text-muted); }
+
+    .action-links { display: flex; gap: 12px; align-items: center; }
+    .action-btn { background: none; border: none; font-family: var(--font-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; padding: 0; }
+    .btn-view { color: var(--primary); }
+    .btn-delete { color: var(--danger); }
+    .btn-view:hover { text-decoration: underline; }
+    .btn-delete:hover { text-decoration: underline; }
+
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state h3 { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 10px;}
+    
+    .header-actions { display: flex; gap: 15px; align-items: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header anim-pop">
+    <div>
+        <h1 class="dashboard-title">System Telemetry</h1>
+        <p class="dashboard-subtitle">ID: {{ session.get('user_name', 'User') }}</p>
+    </div>
+    
+    <div class="header-actions">
+        {% if scans|length > 0 %}
+        <button onclick="downloadDashboardPDF()" class="btn-secondary" style="color: #3b82f6; border-color: rgba(59,130,246,0.3); cursor: pointer; font-family: var(--font-main); font-weight: 600; padding: 10px 20px; border-radius: 6px; background: transparent;">Export History PDF</button>
+        
+        <form action="/delete_all" method="POST" style="margin: 0;" onsubmit="return confirm('Initiate total wipe of all local forensic logs?');">
+            <button type="submit" class="btn-secondary" style="color: var(--danger); border-color: rgba(239,68,68,0.3); padding: 10px 20px; border-radius: 6px; cursor: pointer; background: transparent;">Purge Records</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div id="dashboard-pdf-content" style="background: #ffffff; padding: 10px;">
+    
+    <h2 id="pdf-header-title" style="display: none; font-family: sans-serif; text-align: left; color: #1e293b; margin-bottom: 20px;">Aletheia Complete Telemetry Ledger - ID: {{ session.get('user_name', 'User') }}</h2>
+
+    <div class="stats-grid stagger-1">
+        <div class="card stat-card" style="border: 1px solid var(--border-light);">
+            <span class="stat-label">Total Scans</span>
+            <span class="stat-value">{{ total }}</span>
+        </div>
+        <div class="card stat-card" style="border-top: 4px solid var(--danger); border-left: 1px solid var(--border-light); border-right: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
+            <span class="stat-label">Anomalies Detected</span>
+            <span class="stat-value" style="color: var(--danger);">{{ ai_count }}</span>
+        </div>
+        <div class="card stat-card" style="border-top: 4px solid var(--success); border-left: 1px solid var(--border-light); border-right: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
+            <span class="stat-label">Authentic Payload</span>
+            <span class="stat-value" style="color: var(--success);">{{ authentic_count }}</span>
+        </div>
+    </div>
+
+    <div class="card stagger-2" style="padding: 0; border: none;">
+        <div class="table-container">
+            {% if scans|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payload Name</th>
+                        <th>Classification</th>
+                        <th>Confidence</th>
+                        <th>Date Logged</th>
+                        <th class="action-column">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in scans %}
+                    <tr>
+                        <td><div class="filename">{{ scan.filename }}</div></td>
+                        <td>
+                            <span class="badge 
+                                {% if 'fake' in scan.prediction|lower or 'ai' in scan.prediction|lower or 'manipulated' in scan.prediction|lower %}badge-fake
+                                {% elif 'authentic' in scan.prediction|lower or 'real' in scan.prediction|lower or 'no metadata suspicious' in scan.prediction|lower %}badge-real
+                                {% else %}badge-default{% endif %}">
+                                {{ scan.prediction }}
+                            </span>
+                        </td>
+                        <td style="font-weight: 500;">{{ scan.confidence }}%</td>
+                        <td class="timestamp">{{ scan.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="action-links action-column">
+                            <a href="/report/{{ scan._id }}" class="action-btn btn-view">View</a>
+                            <form action="/delete/{{ scan._id }}" method="POST" style="margin:0;" onsubmit="return confirm('Permanently delete this log?');">
+                                <button type="submit" class="action-btn btn-delete">Drop</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>No Data Logs Found</h3>
+                <p style="color: var(--text-muted); margin-bottom: 24px;">Your node history is currently empty.</p>
+                <a href="/upload" class="btn-primary">Access Scanner</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function downloadDashboardPDF() {
+        window.scrollTo(0, 0);
+
+        const actionCols = document.querySelectorAll('.action-column');
+        const pdfTitle = document.getElementById('pdf-header-title');
+        const tableContainer = document.querySelector('.table-container');
+        const element = document.getElementById('dashboard-pdf-content');
+        
+        actionCols.forEach(el => el.style.display = 'none');
+        pdfTitle.style.display = 'block';
+        
+        const originalOverflow = tableContainer.style.overflowX;
+        tableContainer.style.overflowX = 'visible';
+        
+        const style = document.createElement('style');
+        style.innerHTML = `
+            #dashboard-pdf-content, #dashboard-pdf-content * {
+                opacity: 1 !important;
+                animation: none !important;
+                transition: none !important;
+                transform: none !important;
+                color: #000000 !important;
+            }
+            #dashboard-pdf-content { background-color: #ffffff !important; padding: 20px !important; }
+            .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+            .badge-fake { background-color: #fee2e2 !important; color: #b91c1c !important; }
+            .badge-real { background-color: #d1fae5 !important; color: #047857 !important; }
+            .badge-default { background-color: #f3f4f6 !important; color: #374151 !important; }
+            th { border-bottom: 2px solid #000 !important; }
+            td { border-bottom: 1px solid #ccc !important; }
+        `;
+        document.head.appendChild(style);
+
+        const opt = {
+            margin:       0.5,
+            filename:     'Aletheia_Telemetry_Ledger.pdf',
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' } 
+        };
+
+        // CRITICAL FIX: 50ms delay allows the browser to paint the new visible styles before snapping
+        setTimeout(() => {
+            html2pdf().set(opt).from(element).save().then(() => {
+                actionCols.forEach(el => el.style.display = '');
+                pdfTitle.style.display = 'none';
+                tableContainer.style.overflowX = originalOverflow;
+                document.head.removeChild(style);
+            });
+        }, 50);
+    }
+</script>
+{% endblock %}
