@@ -1,0 +1,10 @@
+dataset/
+__pycache__/
+*.pyc
+*.h5
+
+venv/
+__pycache__/
+*.pyc
+node_modules/
+.env
