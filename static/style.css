@@ -1,0 +1,62 @@
+/* =========================================
+   GLOBAL VARIABLES & TYPOGRAPHY
+========================================= */
+:root {
+    --bg-main: #f8fafc;        /* Soft, minimalist off-white */
+    --text-main: #0f172a;      /* Deep slate for readability */
+    --text-muted: #64748b;     /* Soft slate for secondary text */
+    --primary: #4f46e5;        /* Creative Indigo */
+    --primary-hover: #4338ca;
+    --accent: #2563eb;         /* Bright Blue */
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --surface: #ffffff;        /* Pure white for cards */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.05);
+    --radius: 12px;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   MODERN NAVIGATION BAR
+========================================= */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px); /* Creative glassmorphism effect */
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 16px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
